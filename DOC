@@ -1,0 +1,96 @@
+FINAL REPORT - jlx979, rgp633
+
+-----------------------------------------------
+
+Timing: (All times were recorded with the 5.trace)
+
+-- Resource Map
+
+		* Average time for kma_alloc: 0.000016 seconds
+		* Average time for kma_free: 0.000010 seconds
+
+		* Max time for kma_alloc: 0.004699 seconds
+		* Max time for kma_free: 0.000849 seconds
+
+-- Buddy System running time
+
+		* Average time for kma_alloc: 0.000000 seconds
+		* Average time for kma_free: 0.000000 seconds
+
+		* Max time for kma_alloc: 0.005552 seconds
+		* Max time for kma_free: 0.000248 seconds
+
+-- Power 2 running time:
+
+		* Average time for kma_alloc: 0.000000 seconds
+		* Average time for kma_free: 0.000000 seconds
+
+		* Max time for kma_alloc: 0.004875 seconds
+		* Max time for kma_free: 0.000190 seconds
+
+-- McKusick-Karels running time:
+
+		* Average time for kma_alloc: 0.000000 seconds
+		* Average time for kma_free: 0.000000 seconds
+
+		* Max time for kma_alloc: 0.005841 seconds
+		* Max time for kma_free: 0.000221 seconds
+
+
+
+-- SVR4 running time:
+
+		* Average time for kma_alloc: 0.000000 seconds
+		* Average time for kma_free: 0.000000 seconds
+
+		* Max time for kma_alloc: 0.005736 seconds
+		* Max time for kma_free: 0.000199 seconds
+
+
+-----------------------------------------------
+
+Algorithm comparison and explanation:
+
+
+-- Resource Map:
+We used first fit
+	
+	* kma_malloc - The runtime of kma_malloc is proportional to the length of the free list. In the worst case scenario the algorithm has to travel the whole list and then has to allocate a new page. In the best case, the first buffer is of sufficient size and used immediately.
+
+	* kma_free  - The runtime of kma_free is also proportional to the length of the free list since it has to insert in a sorted order. In the worst case the algorithm travels the list and then has to coalesce.
+
+-- Power of Two Free list:
+We had each page the same size for simplicity. Pages were not freed until the end
+
+    * kma_malloc - the runtime is typically constant, but in the worst case the algorithm has to request a new page and split it into the same size
+    
+    * kma_free - the runtime of kma_free is constant
+
+-- The Buddy System:
+We kept track of buffer size and only set a single bit in the bitmap per buffer
+
+	* kma_malloc - the runtime is usually constant, but in the worst case it has to split from the largest buffer all the way down to the smallest buffer.
+	
+	* kma_free - the runtime is usually constant with some coalecsing and in the worst case it coalesces all the way to a page.
+	
+	* this algorithm can have poor performance due to repetitive coalescing and splitting of buffers. Coalescing is recursive and yeilds extremely poor 
+	  worst-case behavior.
+
+-- SVR4 (Lazy Buddy):
+Note: Our Lazy Buddy implementation was incomplete
+
+	* kma_alloc - the runtime for SVR4's kma_alloc is the same as for the buddy system.
+	
+	* kma_free  - the runtime is usually constant, with less coalescing than buddy. However in the worst case, it can be 2X that of buddy.
+	
+	* this algorithm attempts to improve on the performance of the buddy system by amortizing the cost of coalescing over several requests.
+
+-- McKusick-Karels:
+
+    * kma_alloc - the runtime for McKusick-Karels' kma_alloc is typically constant. In the worst case however, the algorithm has to request a new page and split it into the same size
+   
+    * kma_free  - the runtime for McKusick-Karels' kma_free is usally constant. In the worst case however occurs when a page becomes unused, and the algorithm removes all of the page's blocks from the free list and free page.
+
+
+-- Timing measurements were made with a modified version of kma.c, which is included as kma_timing.c
+
